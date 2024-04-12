@@ -51,12 +51,12 @@ tasks.register<proguard.gradle.ProGuardTask>("proguard") {
     target("11")
 
     // Alternatively put your config in a separate file
-    // configuration("config.pro")
+    configuration("proguard-rules.pro")
 
     // Use the jar task output as a input jar. This will automatically add the necessary task dependency.
-    injars(tasks.named("jar"))
+    injars(tasks.named("instrumentedJar"))
 
-    outjars("build/${rootProject.name}-obfuscated.jar")
+    outjars(tasks.named("instrumentedJar").get().outputs.files.singleFile.absolutePath.replace(".jar", "-obfuscated.jar"))
 
     val javaHome = System.getProperty("java.home")
     // Automatically handle the Java version of this build, don't support JBR
@@ -120,9 +120,9 @@ tasks {
         if( ! properties("skipProguard").toBoolean()) {
             dependsOn("proguard")
             doFirst {
-                val original = File("build/libs/${rootProject.name}.jar")
+                val original = File("${buildDir.absoluteFile.absolutePath}/libs/instrumented-${project.name}-$version.jar")
                 println(original.absolutePath)
-                val obfuscated =  File("build/${rootProject.name}-obfuscated.jar")
+                val obfuscated =  File("${buildDir.absoluteFile.absolutePath}/libs/instrumented-${project.name}-$version-obfuscated.jar")
                 println(obfuscated.absolutePath)
                 if (original.exists() && obfuscated.exists()) {
                     original.delete()
